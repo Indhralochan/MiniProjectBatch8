@@ -8,6 +8,7 @@ import Home from './components/Home.jsx';
 import Signin from './components/Signin.jsx';
 import SignUp from './components/SignUp.jsx';
 import ContactUs from './components/ContactUs.jsx';
+import Songs from './components/Songs.jsx';
 
 const router = createBrowserRouter([
 {
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
   {
     path : "/contactus",
     element : <ContactUs/>
+  },
+  {
+    path: "/session",
+    element : <Songs/>
   }
 ]);
 

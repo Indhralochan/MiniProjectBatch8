@@ -1,54 +1,72 @@
-import axios from "axios"
-import { useEffect } from "react"
+import axios from "axios";
+import { useState, useEffect } from "react";
+import NavbarMain from "./NavbarMain";
 
 function Songs() {
-   let songs
-   async function GetSongs() {
+    const [songs, setSongs] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 14;
+
     useEffect(() => {
         axios.get('http://127.0.0.1:5000/songs')
           .then(response => {
-            songs(response.data);
+            const songsArray = Object.keys(response.data.track_name).map(key => ({
+              id: key,
+              track_name: response.data.track_name[key],
+              popularity: response.data.popularity[key],
+              similarity_score: response.data.similarity_score[key],
+              combined_score: response.data.combined_score[key],
+            }));
+            
+            setSongs(songsArray);
+            console.log(songsArray);
           })
           .catch(error => {
             console.error('Error fetching data:', error);
           });
       }, []);
-    }
-    return (
-        <div className="overflow-y-hidden h-screen bg-gradient-to-b from-gray-700 to-gray-800">
-            return (
-            <ul role="list" className="divide-y divide-gray-100">
-                {songs.map((song) => (
-                    <li key={song.email} className="flex justify-between gap-x-6 py-5">
-                        <div className="flex min-w-0 gap-x-4">
-                            <img className="h-12 w-12 flex-none rounded-full bg-gray-50" src={song.imageUrl} alt="" />
-                            <div className="min-w-0 flex-auto">
-                                <p className="text-sm font-semibold leading-6 text-gray-900">{song.name}</p>
-                                <p className="mt-1 truncate text-xs leading-5 text-gray-500">{song.email}</p>
-                            </div>
-                        </div>
-                        <div className="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-                            <p className="text-sm leading-6 text-gray-900">{song.role}</p>
-                            {song.lastSeen ? (
-                                <p className="mt-1 text-xs leading-5 text-gray-500">
-                                    Last seen <time dateTime={song.lastSeenDateTime}>{song.lastSeen}</time>
-                                </p>
-                            ) : (
-                                <div className="mt-1 flex items-center gap-x-1.5">
-                                    <div className="flex-none rounded-full bg-emerald-500/20 p-1">
-                                        <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                                    </div>
-                                    <p className="text-xs leading-5 text-gray-500">Online</p>
-                                </div>
-                            )}
-                        </div>
-                    </li>
-                ))}
-            </ul>
-            )
 
+    const indexOfLastSong = currentPage * itemsPerPage;
+    const indexOfFirstSong = indexOfLastSong - itemsPerPage;
+    const currentSongs = songs.slice(indexOfFirstSong, indexOfLastSong);
+
+    const paginate = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
+    return (
+        <div className="overflow-y-scroll h-screen bg-gradient-to-b from-gray-700 to-gray-800">
+        <NavbarMain/>
+            <h1 className="text-3xl font-bold my-4 text-white mx-auto flex justify-center">Recommended Songs</h1>
+            <div className="grid grid-cols-2 gap-4 px-5 py-5">
+                {currentSongs.length > 0 ? (
+                    currentSongs.map((song) => (
+                        <div key={song.id} className="text-white p-4 shadow-lg rounded-md shadow-md shadow-emerald-300">
+                            <h2 className="text-xl font-semibold">{song.track_name}</h2>
+                            <p className="text-zinc-300">Popularity: {song.popularity}</p>
+                        </div>
+                    ))
+                ) : (
+                    <p>Loading...</p>
+                )}
+            </div>
+            
+            {/* Pagination */}
+            <div className="mt-4 flex justify-center">
+                {Array.from({ length: Math.ceil(songs.length / itemsPerPage) }, (_, i) => (
+                    <button
+                        key={i}
+                        onClick={() => paginate(i + 1)}
+                        className={`px-3 py-2 mx-1 rounded-md ${
+                            currentPage === i + 1 ? 'bg-indigo-600 text-white' : 'bg-gray-500 text-gray-200'
+                        }`}
+                    >
+                        {i + 1}
+                    </button>
+                ))}
+            </div>
         </div>
-    )
+    );
 }
 
-export default Songs
+export default Songs;
