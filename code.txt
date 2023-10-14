@@ -1,0 +1,117 @@
+import axios from "axios";
+import { useState, useEffect } from "react";
+import NavbarMain from "./NavbarMain";
+
+const Search = () => {
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const [selectedArtist, setSelectedArtist] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (searchText) {
+        try {
+          const response = await axios.post("http://localhost:5000/search", {
+            data: searchText,
+          });
+          setSearchResults(response.data);
+          console.log(response.data);
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      }
+    };
+    fetchData();
+  }, [searchText]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setSearchText(e.target.elements.searchInput.value);
+    setSelectedArtist(null);
+  };
+
+  return (
+    <>
+      <div className="bg-[#09090B] h-screen w-screen overflow-x-hidden">
+        <NavbarMain />
+        <form onSubmit={handleSearch}>
+          <label htmlFor="default-search" className="mb-2 text-sm font-medium text-white sr-only">
+            Search
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <svg
+                className="w-4 h-4 text-white"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"
+                />
+              </svg>
+            </div>
+            <input
+              type="search"
+              id="default-search"
+              name="searchInput"
+              className="block w-full p-4 pl-10 text-sm text-white border rounded-lg bg-[#09090B] focus:ring-[#3e6259] focus:border-[#3e6259]"
+              placeholder="Search Mockups, Logos..."
+              required
+            />
+            <button
+              type="submit"
+              className="text-white absolute right-2.5 bottom-2.5 bg-blue-700 hover:bg-[#3e6259] focus:ring-4 focus:outline-none focus:ring-[#3e6259] font-medium rounded-lg text-sm px-4 py-2 0 dark:focus:ring-[#09090B]"
+            >
+              Search
+            </button>
+          </div>
+        </form>
+        <div className="mt-4">
+          {searchResults && searchResults.albums ? (
+            <div
+              key={searchResults.albums[0].id}
+              className="text-white p-4 shadow-lg rounded-md shadow-md shadow-emerald-300 mb-4"
+            >
+              <div className="flex items-center mb-2">
+                {searchResults.albums[0]?.images[1]?.url && (
+                  <img
+                    src={searchResults.albums[0].images[1].url}
+                    alt={searchResults.albums[0].artists[0].name}
+                    className="w-16 h-16 rounded-full mr-4"
+                  />
+                )}
+                <div>
+                  <h2 className="text-xl font-semibold">
+                    {searchResults.albums[0]?.name || ""}
+                  </h2>
+                  <p className="text-zinc-300">
+                    Artist: {searchResults.albums[0]?.artists[0]?.name || ""}
+                  </p>
+                </div>
+              </div>
+              <a
+                href={searchResults.albums[0]?.external_urls.spotify || ""}
+                className="text-blue-500 hover:underline"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Listen on Spotify
+              </a>
+              {/* ... (the rest of your code) */}
+            </div>
+          ) : (
+            <p className="text-white">No results found.</p>
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default Search;

@@ -5,7 +5,7 @@ import IntroCards from './IntroCards'
 
 function ContactUs() {
   return (
-    <div className="overflow-y-hidden h-screen bg-gradient-to-b from-gray-700 to-gray-800">
+    <div className="overflow-y-hidden h-screen bg-[#09090B]">
     <Navbar/>
     <IntroCards/>
     </div>

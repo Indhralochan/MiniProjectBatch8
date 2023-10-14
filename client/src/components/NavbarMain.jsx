@@ -2,9 +2,9 @@ import { Fragment } from 'react'
 import { Disclosure, Menu, Transition } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useNavigate } from "react-router-dom";
-import img from "../assets/image-removebg-preview_150x150.png"
+import img from "../assets/—Pngtree—sound wave music logo vector_5221287.png"
 const navigation = [
-  { name: 'Dashboard', href: '/', current: true },
+  { name: 'Dashboard', href: '/session', current: true },
   { name: 'Search', href: '/search', current: false },
   { name: 'Signout', href: '/signout', current: false },
 ]
@@ -18,7 +18,7 @@ export default function NavbarMain() {
   const navigator = useNavigate()
 
   return (
-    <Disclosure as="nav" className="bg-gray-800">
+    <Disclosure as="nav" className="bg-[#09090B]">
       {({ open }) => (
         <>
           <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
@@ -50,7 +50,7 @@ export default function NavbarMain() {
                         key={item.name}
                         onClick={()=>navigator(item.href)}
                         className={classNames(
-                          item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                          item.current ? 'text-white rounded-lg ' : 'text-gray-300  hover:text-white rounded-lg',
                           'rounded-md px-3 py-2 text-sm font-medium'
                         )}
                         aria-current={item.current ? 'page' : undefined}

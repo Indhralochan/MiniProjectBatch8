@@ -1,8 +1,7 @@
-import { Fragment } from 'react'
-import { Disclosure, Menu, Transition } from '@headlessui/react'
+import { Disclosure, Menu} from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useNavigate } from "react-router-dom";
-import img from "../assets/image-removebg-preview_150x150.png"
+import img from "../assets/—Pngtree—sound wave music logo vector_5221287.png"
 const navigation = [
   { name: 'Dashboard', href: '/', current: true },
   { name: 'Signup', href: '/signup', current: false },
@@ -19,7 +18,7 @@ export default function Navbar() {
   const navigator = useNavigate()
 
   return (
-    <Disclosure as="nav" className="bg-gray-800">
+    <Disclosure as="nav" className="bg-[#09090B] border-0 focus:outline-none rounded text-lg shadow-lg shadow-[#294936] text-white">
       {({ open }) => (
         <>
           <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
@@ -39,19 +38,19 @@ export default function Navbar() {
               <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
                 <div className="flex flex-shrink-0 items-center">
                   <img
-                    className="h-20 w-auto"
+                    className="h-20 w-auto justify-start"
                     src={img}
                     alt="Your Company"
                   />
                 </div>
-                <div className="hidden sm:ml-6 sm:block py-14">
-                  <div className="flex space-x-4">
+                <div className="hidden sm:ml-6 sm:block py-14 rounded-lg">
+                  <div className="flex space-x-4 rounded-lg">
                     {navigation.map((item) => (
                       <button
                         key={item.name}
                         onClick={()=>navigator(item.href)}
                         className={classNames(
-                          item.current ? 'bg-gray-900 text-white' : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                          item.current ? 'text-white rounded-lg ' : 'text-gray-300  hover:text-white rounded-lg',
                           'rounded-md px-3 py-2 text-sm font-medium'
                         )}
                         aria-current={item.current ? 'page' : undefined}
@@ -65,24 +64,24 @@ export default function Navbar() {
               <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
                 <button
                   type="button"
-                  className="relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
+                  className="relative rounded-lg  p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
                 >
                 </button>
 
                 {/* Profile dropdown */}
                 <Menu as="div" className="relative ml-3">
                   <div>
-                    <Menu.Button className="relative flex rounded-full bg-gray-800 text-sm focus:outline-none ">
+                    <Menu.Button className="relative flex rounded-full  text-sm focus:outline-none ">
                       <span className="absolute -inset-1.5" />
                       <span className="sr-only">Open user menu</span>
-                      <span className='text-gray-300 hover:text-gray-700 hover:text-white px-3 py-2 shadow-md rounded-lg  shadow-emerald-300'>Signout</span>
+                      <span className='text-gray-300 hover:text-gray-700 hover:text-white px-3 py-2 shadow-md rounded-lg  shadow-md shadow-[#294936] text-white'>Signout</span>
                     </Menu.Button>
                   </div>
                   
                         {({ active }) => (
                           <a
                             href="#"
-                            className={classNames(active ? 'bg-gray-100' : '', 'block px-4 py-2 text-sm text-gray-700')}
+                            className={classNames(active ? 'rounded-lg  shadow-md shadow-[#294936] text-white' : '', 'block px-4 py-2 text-sm text-gray-700')}
                           >
                             Sign out
                           </a>

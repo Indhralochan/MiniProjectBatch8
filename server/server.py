@@ -9,10 +9,16 @@ from flask_jwt_extended import create_access_token,get_jwt,get_jwt_identity, \
 from flask_cors import CORS
 import pickle
 import pandas as pd
-
+import os
+from dotenv import load_dotenv
+import base64
+from requests import post , get
+import math
+load_dotenv() 
 f = open('userid.txt', 'w')
 f.close()
-
+client_id=os.getenv("CLIENT_ID")
+client_secret= os.getenv("CLIENT_SECRET")
 def writeFile(string):
     f = open('userid.txt', 'w')
     f.write(string)
@@ -54,6 +60,62 @@ with app.app_context():
 app.config["JWT_SECRET_KEY"] = "hello-world"
 jwt = JWTManager(app)
 
+
+def get_token():
+    print(client_id)
+    print(client_secret)
+    auth_string=   client_id + ":" + client_secret
+    auth_bytes = auth_string.encode('utf-8')
+    auth_base64 = str(base64.b64encode(auth_bytes),"utf-8")
+    url= "https://accounts.spotify.com/api/token"
+    headers={
+        "Authorization": "Basic " + auth_base64,
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    data={"grant_type": "client_credentials"}
+    result=post(url,headers=headers,data=data)
+    json_result = result.json()
+    token = json_result["access_token"]
+    return token
+def get_auth_header(token):
+    headers = {
+        "Authorization": "Bearer " + token
+    }
+    return headers
+def searchForArtist(token , artist_name):
+    url="https://api.spotify.com/v1/search"
+    headers = get_auth_header(token)
+    query=f"?q={artist_name}&type=artist&limit=5"
+    query_url = url + query
+    result = get(query_url, headers=headers)
+    json_result = result.json()
+    return json_result["artists"]["items"]
+
+def searchForSong(token, text):
+    url="https://api.spotify.com/v1/search"
+    headers = get_auth_header(token)
+    query=f"?q={text}&type=track&limit=5"
+    query_url = url + query
+    result = get(query_url, headers=headers)
+    json_result = result.json()
+    return json_result["tracks"]["items"]
+
+def searchForAlbums(token, album_name):
+    url="https://api.spotify.com/v1/search" 
+    headers= get_auth_header(token)
+    query=f"?q={album_name}&type=album&limit=5"
+    query_url=url+query
+    result = get(query_url, headers=headers)
+    json_result = result.json()
+    return json_result["albums"]["items"]
+
+def get_songs_by_artist(token, artist_id):
+    url = f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks?country=US"
+    header = get_auth_header(token)
+    result = get(url, headers=header)
+    json_result = result.json()
+    return json_result
+
 @app.route('/token', methods=["POST"])
 def create_token():
     email = request.json.get("email", None)
@@ -64,11 +126,28 @@ def create_token():
     response = {"access_token":access_token}
     return response
 
-@app.route('/songs',methods=['GET'])
-def get_data():
+@app.route('/songs', methods=['GET'])
+def get_songs():
     data = pd.read_pickle("recommended_songs.pkl")
-    print(data)
-    return data.to_json() , 200
+    page = request.args.get('page', type=int, default=1)
+    items_per_page = request.args.get('itemsPerPage', type=int, default=30)
+    total_songs = len(data)
+    total_pages = math.ceil(total_songs / items_per_page)
+
+    start = (page - 1) * items_per_page
+    end = min(start + items_per_page, total_songs)
+
+    songs = []
+    token = get_token()
+    for _, song in data.iloc[start:end].iterrows():
+        track_name = song["track_name"]
+        song_info = searchForSong(token, track_name)
+        if song_info:
+            songs.append(song_info[0].copy())
+            songs[-1].update(song.to_dict())
+
+    return jsonify(songs)
+
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -120,6 +199,24 @@ def signout():
         return jsonify({"status":"Success"})
     else:
         return jsonify({"status":"UnSuccessful"})
+    
+@app.route('/search', methods=['POST'])
+def search():
+    if request.method == 'POST':
+        data = request.json['data']
+        token = get_token()
+
+        artists = searchForArtist(token, data)
+        songs = searchForSong(token, data)
+        albums = searchForAlbums(token, data)
+        search_results = {
+            "artists": artists,
+            "songs": songs,
+            "albums": albums
+        }
+        print(search_results)
+        return jsonify(search_results), 200
+
 
 if __name__ == '__main__':
 	app.run(debug=True)

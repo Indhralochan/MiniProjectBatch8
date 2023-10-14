@@ -4,7 +4,7 @@ import Navbar from './Navbar'
 import SignupForm from './SignupForm'
 function SignUp() {
   return (
-    <div className="overflow-y-scroll h-screen bg-gradient-to-b from-gray-700 to-gray-800">
+    <div className="overflow-y-scroll h-screen bg-[#09090B]">
    <Navbar/>
    <SignupForm/>
     </div>
