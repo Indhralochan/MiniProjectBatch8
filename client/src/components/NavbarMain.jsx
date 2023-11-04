@@ -2,11 +2,14 @@ import { Fragment } from 'react'
 import { Disclosure, Menu, Transition } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useNavigate } from "react-router-dom";
+import { useEffect , useState } from 'react';
+import { getAuth } from 'firebase/auth';
 import img from "../assets/—Pngtree—sound wave music logo vector_5221287.png"
 const navigation = [
   { name: 'Dashboard', href: '/session', current: true },
   { name: 'Search', href: '/search', current: false },
-  { name: 'Signout', href: '/signout', current: false },
+  { name: 'Signout', href: '/', current: false },
+  { name: 'Spotify Signup', href: '/auth/login', current: false },
 ]
 
 function classNames(...classes) {
@@ -15,7 +18,18 @@ function classNames(...classes) {
 
 export default function NavbarMain() {
 
-  const navigator = useNavigate()
+  const navigate = useNavigate();
+  const [userName,setUserName] = useState("")
+  const [photoURL,setPhotoURL] = useState("")
+  useEffect(()=>{
+    getAuth().onAuthStateChanged((user)=>{
+        if(!user) navigate('/')
+        else{
+            setUserName(user.displayName)
+            setPhotoURL(user.photoURL)
+        }
+      })
+ },[])
 
   return (
     <Disclosure as="nav" className="bg-[#09090B]">
@@ -37,18 +51,14 @@ export default function NavbarMain() {
               </div>
               <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
                 <div className="flex flex-shrink-0 items-center">
-                  <img
-                    className="h-20 w-auto"
-                    src={img}
-                    alt="Your Company"
-                  />
+
                 </div>
                 <div className="hidden sm:ml-6 sm:block py-14">
                   <div className="flex space-x-4">
                     {navigation.map((item) => (
                       <button
                         key={item.name}
-                        onClick={()=>navigator(item.href)}
+                        onClick={()=>navigate(item.href)}
                         className={classNames(
                           item.current ? 'text-white rounded-lg ' : 'text-gray-300  hover:text-white rounded-lg',
                           'rounded-md px-3 py-2 text-sm font-medium'
@@ -62,23 +72,14 @@ export default function NavbarMain() {
                 </div>
               </div>
               <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-                <button
-                  type="button"
-                  className="relative rounded-full bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
-                >
-                </button>
-
+              <div className="text-bold text-lg text-white px-5">{userName}</div>
+              <div className="rounded-full w-10 h-10 mr-3 text-[25px] font-bold text-black/30 flex items-center justify-center overflow-clip"><img src={photoURL} alt={userName} /></div>
                 {/* Profile dropdown */}
                 <Menu as="div" className="relative ml-3">
                   <div>
                     <Menu.Button className="relative flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                       <span className="absolute -inset-1.5" />
                       <span className="sr-only">Open user menu</span>
-                      <img
-                        className="h-8 w-8 rounded-full"
-                        src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                        alt=""
-                      />
                     </Menu.Button>
                   </div>
                   <Transition
