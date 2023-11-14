@@ -51,55 +51,34 @@ function Songs() {
     setLyrics("")
   }
   const loadSongs = (page) => {
-    if (isLoading || !hasMore || page !== currentPage) return;
+    if (isLoading || !hasMore || page !== currentPage) return; // Skip if not the current page
     setLoading(true);
-    const storedUserData = localStorage.getItem('songs');
-    console.log(storedUserData);
-  
-    if (storedUserData) {
-      const storedData = JSON.parse(storedUserData);
-      if (storedData.length > 0) {
-        // If data is already in local storage, set it
-        setSongs(storedData);
-        setLoading(false);
-        return;
-      }
-    }
-  
-    const promises = [];
-  
-    for (let i = page; i <= 8; i++) {
-      promises.push(
-        axios.get(`http://127.0.0.1:5000/songs?page=${i}&itemsPerPage=${songsPerPage}`)
-      );
-    }
-  
-    Promise.all(promises)
-      .then((responses) => {
-        const newSongs = [];
-        responses.forEach((response) => {
-          if (response.data.length > 0) {
-            newSongs.push(...response.data.filter((song) => !renderedSongs.has(song.id)));
-          }
-        });
-        setSongs((prevSongs) => [...prevSongs, ...newSongs]);
-        localStorage.setItem('songs', JSON.stringify(songs));
-        newSongs.forEach((song) => renderedSongs.add(song.id));
-        setCurrentPage(page + 1);
-        setLoading(false);
+    axios
+      .get(`http://127.0.0.1:5000/songs?page=${page}&itemsPerPage=${songsPerPage}`)
+      .then((response) => {
+        if (response.data.length > 0) {
+          // Filter out songs that have already been rendered
+          const newSongs = response.data.filter((song) => !renderedSongs.has(song.id));
+          setSongs((prevSongs) => [...prevSongs, ...newSongs]);
+          // Add newly rendered song IDs to the set
+          newSongs.forEach((song) => renderedSongs.add(song.id));
+          setCurrentPage(page + 1);
+          setLoading(false);
+        } else {
+          setHasMore(false);
+        }
       })
       .catch((error) => {
         console.error('Error fetching data:', error);
+      })
+      .finally(() => {
         setLoading(false);
       });
   };
-  
+
   useEffect(() => {
     loadSongs(currentPage);
   }, [currentPage]);
-  
-  
-  
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -205,7 +184,6 @@ function Songs() {
               </div>
             </div>
           ))} 
-          console.log(selectedSongs)      
         </div>
       </InfiniteScroll>
     </div>

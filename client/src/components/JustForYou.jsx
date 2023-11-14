@@ -13,7 +13,7 @@ const JustForYou = () => {
   const { userData, setUserData } = useContext(UserDataContext);
 
   useEffect(() => {
-    const storedUserData = localStorage.getItem('userData');
+    const storedUserData = localStorage.getItem(user_uuid);
     if (storedUserData) {
       setUserData(JSON.parse(storedUserData));
     } else {
@@ -21,25 +21,28 @@ const JustForYou = () => {
         if (!user) navigate('/');
         else {
           setuser_uuid(user.uid);
+          axios
+            .get(`http://localhost:5000/collaborative-recommendations?user_id=${user.uid}`)
+            .then((response) => {
+              setUserData(response.data);
+              localStorage.setItem(user.uid, JSON.stringify(response.data));
+              localStorage.setItem("user_id", user.uid);
+              console.log(response.data);
+            })
+            .catch((error) => {
+              console.error('Error fetching data:', error);
+            });
         }
       }, []);
-
-      axios
-      .get(`http://localhost:5000/collaborative-recommendations?user_id=${user_uuid}`)
-      .then((response) => {
-        setUserData(response.data);
-        localStorage.setItem('userData', JSON.stringify(response.data));
-      })
-      .catch((error) => {
-        console.error('Error fetching data:', error);
-      });
-  }
-}, [user_uuid, navigate, setUserData]);
+    }
+  }, []);
 
   const handleSetSong = (uri) => {
     setSelectedSongUri(uri);
   };
-
+  useEffect(() => {
+    console.log(userData);
+  }, []);
 
   return (
     <>
@@ -52,7 +55,7 @@ const JustForYou = () => {
           {userData.data &&
             Array.isArray(userData.data) &&
             userData.data.map((song) => (
-              (song.album && song.album.images && song.album.images.length > 0) && (
+              song.album && song.album.images && song.album.images.length > 0 && (
                 <div key={song.id} className="mb-3">
                   <div className="bg-[#09090B] w-[80%] border border-gray-200 rounded-xl shadow-lg shadow-[#294936] mx-auto dark:bg-gray-800 dark:border-gray-700 flex">
                     <button className="w-1/4">

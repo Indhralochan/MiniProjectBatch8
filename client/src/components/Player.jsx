@@ -6,6 +6,7 @@ export default function Player({ accessToken, trackUri }) {
   const [play, setPlay] = useState(false)
   console.log(accessToken)
   console.log(trackUri)
+  console.log("Inside track uri")
   useEffect(() => setPlay(true), [trackUri])
 
   if (!accessToken) return null
@@ -18,7 +19,7 @@ export default function Player({ accessToken, trackUri }) {
         if (!state.isPlaying) setPlay(false)
       }}
       play={play}
-      uris={trackUri ? [trackUri] : []}
+      uris={trackUri ? trackUri : []}
     />
     </div>
   )

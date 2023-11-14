@@ -1,25 +1,26 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { HiOutlineHashtag, HiOutlineHome, HiOutlineMenu, HiOutlinePhotograph, HiOutlineUserGroup } from 'react-icons/hi';
+import { HiOutlineHome, HiOutlineMenu, } from 'react-icons/hi';
+import {PiPlaylistThin} from 'react-icons/pi';
 import { RiCloseLine } from 'react-icons/ri';
+import {BiTrendingUp,BiHistory} from 'react-icons/bi';
 import logo from "../assets/—Pngtree—sound wave music logo vector_5221287.png"
 
 const links = [
   { name: 'Discover', to: '/session', icon: HiOutlineHome },
-  { name: 'Around You', to: '/dashboard/around-you', icon: HiOutlinePhotograph },
-  { name: 'Top Artists', to: '/dashboard/top-artists', icon: HiOutlineUserGroup },
-  { name: 'Top Charts', to: '/dashboard/top-charts', icon: HiOutlineHashtag },
+  { name: 'PlayLists', to: '/playlists', icon: PiPlaylistThin },
+  { name: 'User History', to: '/user-history', icon: BiHistory },
 ];
 
 
 // eslint-disable-next-line react/prop-types
 const NavLinks = () => (
-  <div className="mt-10">
+  <div className="mt-10 px-10">
     {links.map((item) => (
       <NavLink
         key={item.name}
         to={item.to}
-        className="flex flex-row justify-start items-center my-8 text-sm font-medium text-gray-400 hover:text-[#3e6259]"
+        className="flex flex-row justify-start items-center my-8 text-sm font-medium text-gray-400 hover:text-cyan-300"
         onClick={()=>navigate(item.to)}
       >
         <item.icon className="w-6 h-6 mr-2" />

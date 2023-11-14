@@ -19,10 +19,12 @@ import math
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from spotipy.oauth2 import SpotifyOAuth
+import random
+
 
 load_dotenv() 
 
-
+song_cache = {}
 client_id=os.getenv("CLIENT_ID")
 client_secret= os.getenv("CLIENT_SECRET")
 sp_oauth = SpotifyOAuth(
@@ -58,6 +60,7 @@ with app.app_context():
 data = pd.read_pickle("recommended_songs.pkl")
 
 access_token = ''
+
 def generate_random_string(length):
     possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
     return ''.join(random.choice(possible) for _ in range(length))
@@ -76,11 +79,13 @@ def get_token():
     json_result = result.json()
     token = json_result["access_token"]
     return token
+
 def get_auth_header(token):
     headers = {
         "Authorization": "Bearer " + token
     }
     return headers
+
 def searchForArtist(token , artist_name):
     url="https://api.spotify.com/v1/search"
     headers = get_auth_header(token)
@@ -107,14 +112,27 @@ def searchForAlbums(token, album_name):
     result = get(query_url, headers=headers)
     json_result = result.json()
     return json_result["albums"]["items"]
+
 def searchForTrack(token, track):
-    url="https://api.spotify.com/v1/tracks/%s" % track
+    # Check if the response is cached for the given track
+    if track in song_cache:
+        cached_response = song_cache[track]
+        return cached_response
+    
+    url = "https://api.spotify.com/v1/tracks/%s" % track
     headers = {
-    'Authorization': f'Bearer {token}'
+        'Authorization': f'Bearer {token}'
     }
     response = get(url, headers=headers)
-    json_result = response.json()
-    return json_result
+    
+    if response.content:
+        json_result = response.json()
+        # Cache the response for this track
+        song_cache[track] = json_result
+        return json_result
+    else:
+        return None
+
 
 def get_songs_by_artist(token, artist_id):
     url = f"https://api.spotify.com/v1/artists/{artist_id}/top-tracks?country=US"
@@ -123,9 +141,21 @@ def get_songs_by_artist(token, artist_id):
     json_result = result.json()
     return json_result
 
+def shuffle_and_mix(data, collab):
+    # Convert the list of dictionaries (collab) to a DataFrame
+    collab_df = pd.DataFrame(collab)
+    
+    # Combine data and collab
+    recommendations = pd.concat([data, collab_df])
+
+    # Shuffle the recommendations to mix them
+    recommendations = recommendations.sample(frac=1).reset_index(drop=True)
+
+    return recommendations
 
 @app.route('/songs', methods=['GET'])
 def get_songs():
+    user_id = request.args.get("user_id")
     page = request.args.get('page', type=int, default=1)
     items_per_page = request.args.get('itemsPerPage', type=int, default=15)
     total_songs = len(data)
@@ -133,15 +163,33 @@ def get_songs():
     start = (page - 1) * items_per_page
     end = min(start + items_per_page, total_songs)
     songs = []
-    token = get_token()
-    for _, song in data.iloc[start:end].iterrows():
-        track_name = song["track_name"]
-        song_info = searchForSong(token, track_name)
-        if song_info:
-            song_data = song_info[0].copy()
-            song_data.update(song.to_dict())
-            songs.append(song_data)
-
+    main=[]
+    if user_id:
+        val = UserRating.query.filter_by(user_id=user_id).count()
+        if val >= 20:
+            collab = get_collaborative_recommendations(user_id, top_n=10)
+            # Shuffle and mix the collaborative recommendations with your data
+            # You can implement the shuffling logic here
+            hybrid_songs = shuffle_and_mix(data, collab)
+            songs.extend(hybrid_songs)
+            token = get_token()
+            for _, song in data.iloc[start:end].iterrows():
+                track_name = song["track_name"]
+                song_info = searchForSong(token, track_name)
+                if song_info:
+                    song_data = song_info[0].copy()
+                    song_data.update(song.to_dict())
+                    main.append(song_data)
+        return jsonify(main)
+    if not songs:
+            token = get_token()
+            for _, song in data.iloc[start:end].iterrows():
+                track_name = song["track_name"]
+                song_info = searchForSong(token, track_name)
+                if song_info:
+                    song_data = song_info[0].copy()
+                    song_data.update(song.to_dict())
+                    songs.append(song_data)
     return jsonify(songs)
 
 
@@ -301,16 +349,74 @@ def get_collaborative_recommendations(user_id, top_n=10):
 
     return list(top_song_ids)
 
+@app.route('/user-history', methods=['GET'])
+def get_user_history():
+    try:
+        user_id = request.args.get("user_id")
+        print(user_id)
+        
+        user_ratings = UserRating.query.filter_by(user_id=user_id).all()
+        user_history = UserHistory.query.filter_by(user_id=user_id).all()
+        
+        user_history_details = []
+        user_rating_details = []
+        token=get_token()
+        for history in user_history:
+            song_id = history.song_id
+            song_details = searchForTrack(token,song_id)
+            song_name = song_details.get("name")
+            user_history_details.append({"song_id": song_id, "song_name": song_name, "timestamp": history.timestamp})
+        for rating in user_ratings:
+            song_id = rating.song_id
+            song_rating = rating.rating
+            song_details = searchForTrack(token,song_id)
+            song_name = song_details.get("name")
+            user_rating_details.append({"song_id": song_id, "song_name": song_name,"rating": song_rating, "timestamp": history.timestamp})
+            
+        if user_ratings or user_history:
+            return jsonify({
+                "user_ratings": user_rating_details,
+                "user_history": user_history_details
+            }), 200
+        else:
+            return jsonify({"message": "User has no ratings or history."}), 404
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/collaborative-recommendations', methods=['GET'])
 def collaborative_recommendations():
     user_id = request.args.get("user_id")
-    top_recommendations = get_collaborative_recommendations(user_id, top_n=15)
+    if(user_id == None or ''):
+        return jsonify({"data": "unsuccessfull"}) , 400
+    top_recommendations = get_collaborative_recommendations(user_id, top_n=10)
     lst=[]
     for i in top_recommendations:
         v=searchForTrack(get_token(),i)
         lst.append(v)
     
     return jsonify({"data": lst}) , 200
+
+@app.route('/playlist', methods=['GET'])
+def playlists():
+    user_id = request.args.get("user_id")
+    top_recommendations = get_collaborative_recommendations(user_id, top_n=10)
+    print(top_recommendations)
+    lst = []
+    links = []
+    for i in top_recommendations:
+        v = searchForTrack(get_token(), i)
+        print(v)
+        link = v.get('uri')
+        if(link=='null' or link==None or link==''):
+            continue
+        else:
+            links.append(link)
+            lst.append(v)
+    print(lst)
+    print(links)
+    return jsonify({"playlists": lst, "links": links}), 200
 
 if __name__ == '__main__':
 	app.run(debug=True)

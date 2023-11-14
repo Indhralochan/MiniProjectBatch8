@@ -21,9 +21,6 @@ export default function useAuth(code) {
         console.log(expiresIn)
        
       })
-      .catch(() => {
-        window.location = "/"
-      })
   }, [code])
 
   useEffect(() => {

@@ -19,7 +19,8 @@ import ClickProvider from './components/SelectedContext.jsx';
 import SpotifyLogin from './components/SpotifyLogin.jsx';
 import  SongUriProvider  from './components/useSongContext.jsx';
 import { UserDataProvider } from './components/DataContext';
-
+import UserHistoryMain from './components/UserHistoryMain.jsx';
+import PlaylistMain from './components/PlaylistMain.jsx';
 const router = createBrowserRouter([
 {
     path: "/",
@@ -52,6 +53,14 @@ const router = createBrowserRouter([
   {
     path: "/auth/login",
     element : <SpotifyLogin/>
+  },
+  {
+    path: "/user-history",
+    element : <UserHistoryMain />
+  },
+  {
+    path: "/playlists",
+    element : <PlaylistMain />
   },
 ]);
 
