@@ -57,7 +57,7 @@ class UserHistory(db.Model):
 with app.app_context():
     db.create_all()
     
-data = pd.read_pickle("recommended_songs.pkl")
+data = pd.read_pickle("recommended_songs_new.pkl")
 
 access_token = ''
 
