@@ -7,7 +7,7 @@ Cython==3.0.4
 Flask==2.2.5
 Flask-Cors==4.0.0
 Flask-PyMongo==2.3.0
-Flask-SQLAlchemy==3.1.1
+Flask-SQLAlchemy==3.0.5
 greenlet==3.0.0
 idna==3.4
 itsdangerous==2.1.2
