@@ -3,7 +3,6 @@ from flask import Flask, request, render_template, redirect
 from flask import jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, DateTime, func
-from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta, timezone
 from flask_cors import CORS
 import pickle
